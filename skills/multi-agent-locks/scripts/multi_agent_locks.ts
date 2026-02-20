@@ -6,13 +6,16 @@ import { homedir } from "node:os";
 import path from "node:path";
 
 const DEFAULT_TTL_SECONDS = 180;
-const DB_ENV_VAR = "MULTI_AGENT_LOCKS_DB";
+const HARD_CODED_DB_PATH = path.join(
+  path.resolve(import.meta.dir, ".."),
+  "assets",
+  "multi_agent_locks.db",
+);
 
 type Command = "acquire" | "heartbeat" | "release" | "status";
 
 type AcquireArgs = {
   command: "acquire";
-  db?: string;
   json: boolean;
   owner: string;
   taskId?: string;
@@ -23,7 +26,6 @@ type AcquireArgs = {
 
 type HeartbeatArgs = {
   command: "heartbeat";
-  db?: string;
   json: boolean;
   owner: string;
   ttl: number;
@@ -32,7 +34,6 @@ type HeartbeatArgs = {
 
 type ReleaseArgs = {
   command: "release";
-  db?: string;
   json: boolean;
   owner: string;
   files: string[];
@@ -40,7 +41,6 @@ type ReleaseArgs = {
 
 type StatusArgs = {
   command: "status";
-  db?: string;
   json: boolean;
   files: string[];
 };
@@ -432,7 +432,6 @@ function parseSubcommandArgs(
   command: Command,
   args: string[],
 ): Omit<AcquireArgs, "command"> | Omit<HeartbeatArgs, "command"> | Omit<ReleaseArgs, "command"> | Omit<StatusArgs, "command"> {
-  let db: string | undefined;
   let json = false;
   let owner: string | undefined;
   let taskId: string | undefined;
@@ -451,7 +450,8 @@ function parseSubcommandArgs(
     if (token.startsWith("--")) {
       switch (token) {
         case "--db":
-          db = optionValue(args, index, "--db");
+          // Keep parsing this for backwards compatibility, but always use the hardcoded path.
+          optionValue(args, index, "--db");
           index += 2;
           continue;
         case "--json":
@@ -490,7 +490,7 @@ function parseSubcommandArgs(
     if (files.length === 0) {
       throw new Error("acquire requires at least one file");
     }
-    return { db, json, owner, taskId, repoRoot, ttl, files };
+    return { json, owner, taskId, repoRoot, ttl, files };
   }
 
   if (command === "heartbeat") {
@@ -500,7 +500,7 @@ function parseSubcommandArgs(
     if (files.length === 0) {
       throw new Error("heartbeat requires at least one file");
     }
-    return { db, json, owner, ttl, files };
+    return { json, owner, ttl, files };
   }
 
   if (command === "release") {
@@ -510,10 +510,10 @@ function parseSubcommandArgs(
     if (files.length === 0) {
       throw new Error("release requires at least one file");
     }
-    return { db, json, owner, files };
+    return { json, owner, files };
   }
 
-  return { db, json, files };
+  return { json, files };
 }
 
 function parseArgs(argv: string[]): ParsedArgs {
@@ -545,12 +545,8 @@ function parseArgs(argv: string[]): ParsedArgs {
   return { command: "status", ...(parsed as Omit<StatusArgs, "command">) };
 }
 
-function resolveDbPath(cliValue: string | undefined): string {
-  const value = cliValue ?? process.env[DB_ENV_VAR];
-  if (!value) {
-    throw new Error(`missing database path: set --db or ${DB_ENV_VAR}`);
-  }
-  return normalizePath(value);
+function resolveDbPath(): string {
+  return normalizePath(HARD_CODED_DB_PATH);
 }
 
 function sortJson(value: unknown): unknown {
@@ -569,7 +565,7 @@ function sortJson(value: unknown): unknown {
 function main(argv: string[]): number {
   try {
     const args = parseArgs(argv);
-    const dbPath = resolveDbPath(args.db);
+    const dbPath = resolveDbPath();
 
     if ("owner" in args) {
       validateOwner(args.owner);

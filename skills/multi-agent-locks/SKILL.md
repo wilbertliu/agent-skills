@@ -30,9 +30,9 @@ Follow this protocol exactly.
 
 Use `scripts/multi_agent_locks.ts`.
 
-Set the database path explicitly until product naming is finalized:
+The SQLite database path is hardcoded to:
 
-- `--db <path>` or `MULTI_AGENT_LOCKS_DB`
+- `assets/multi_agent_locks.db` (relative to this skill directory)
 
 ### Commands
 
@@ -47,15 +47,14 @@ Pass `--json` when command output needs to be parsed by automation.
 
 ```bash
 OWNER="codex:$$:${SESSION_ID}"
-DB_PATH="/absolute/path/to/locks.db"
 
 cleanup() {
-  bun scripts/multi_agent_locks.ts release --db "$DB_PATH" --owner "$OWNER" -- "${LOCKED_FILES[@]}"
+  bun scripts/multi_agent_locks.ts release --owner "$OWNER" -- "${LOCKED_FILES[@]}"
 }
 trap cleanup EXIT INT TERM
 
 # Acquire, then continue only with returned acquired files.
-bun scripts/multi_agent_locks.ts acquire --db "$DB_PATH" --owner "$OWNER" --json -- path/a.ts path/b.ts
+bun scripts/multi_agent_locks.ts acquire --owner "$OWNER" --json -- path/a.ts path/b.ts
 ```
 
 ## Behavioral requirements
