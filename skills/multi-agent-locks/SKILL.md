@@ -28,7 +28,7 @@ Follow this protocol exactly.
 
 ## Bundled CLI
 
-Use `scripts/multi_agent_locks.ts`.
+Use `scripts/multi_agent_locks.mjs`.
 Default to npm execution from the skill directory (`skills/multi-agent-locks`):
 
 - `npm run locks -- <command> [options]`

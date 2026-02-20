@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "locks": "node --disable-warning=ExperimentalWarning --experimental-strip-types ./scripts/multi_agent_locks.ts"
+    "locks": "node --disable-warning=ExperimentalWarning ./scripts/multi_agent_locks.mjs"
   }
 }
