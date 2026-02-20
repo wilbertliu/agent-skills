@@ -1,16 +1,33 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S node --disable-warning=ExperimentalWarning --experimental-strip-types
 
-import { Database } from "bun:sqlite";
+import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const DEFAULT_TTL_SECONDS = 180;
+const SKILL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const HARD_CODED_DB_PATH = path.join(
-  path.resolve(import.meta.dir, ".."),
+  SKILL_DIR,
   "assets",
   "multi_agent_locks.db",
 );
+
+type QueryRunResult = {
+  changes: number;
+  lastInsertRowid: number | bigint;
+};
+
+type QueryAdapter = {
+  run: (...params: unknown[]) => QueryRunResult;
+  get: (...params: unknown[]) => unknown;
+  all: (...params: unknown[]) => unknown[];
+};
+
+type Database = DatabaseSync & {
+  query: (sql: string) => QueryAdapter;
+};
 
 type Command = "acquire" | "heartbeat" | "release" | "status";
 
@@ -111,11 +128,24 @@ function withImmediateTransaction<T>(db: Database, callback: () => T): T {
   }
 }
 
+function withQueryAdapter(db: DatabaseSync): Database {
+  const adapted = db as Database;
+  adapted.query = (sql: string): QueryAdapter => {
+    const statement = db.prepare(sql);
+    return {
+      run: (...params: unknown[]) => statement.run(...params) as QueryRunResult,
+      get: (...params: unknown[]) => (statement.get(...params) ?? null) as unknown,
+      all: (...params: unknown[]) => statement.all(...params) as unknown[],
+    };
+  };
+  return adapted;
+}
+
 function connectDb(dbPath: string): Database {
   const absolutePath = normalizePath(dbPath);
   mkdirSync(path.dirname(absolutePath), { recursive: true });
 
-  const db = new Database(absolutePath, { create: true });
+  const db = withQueryAdapter(new DatabaseSync(absolutePath));
   db.exec("PRAGMA journal_mode=WAL");
   db.exec("PRAGMA busy_timeout=5000");
   db.exec(`

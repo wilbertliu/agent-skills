@@ -1,0 +1,8 @@
+{
+  "name": "multi-agent-locks-skill",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "locks": "node --disable-warning=ExperimentalWarning --experimental-strip-types ./scripts/multi_agent_locks.ts"
+  }
+}

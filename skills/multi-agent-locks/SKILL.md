@@ -29,6 +29,9 @@ Follow this protocol exactly.
 ## Bundled CLI
 
 Use `scripts/multi_agent_locks.ts`.
+Default to npm execution from the skill directory (`skills/multi-agent-locks`):
+
+- `npm run locks -- <command> [options]`
 
 The SQLite database path is hardcoded to:
 
@@ -49,12 +52,12 @@ Pass `--json` when command output needs to be parsed by automation.
 OWNER="codex:$$:${SESSION_ID}"
 
 cleanup() {
-  bun scripts/multi_agent_locks.ts release --owner "$OWNER" -- "${LOCKED_FILES[@]}"
+  npm run locks -- release --owner "$OWNER" -- "${LOCKED_FILES[@]}"
 }
 trap cleanup EXIT INT TERM
 
 # Acquire, then continue only with returned acquired files.
-bun scripts/multi_agent_locks.ts acquire --owner "$OWNER" --json -- path/a.ts path/b.ts
+npm run locks -- acquire --owner "$OWNER" --json -- path/a.ts path/b.ts
 ```
 
 ## Behavioral requirements
