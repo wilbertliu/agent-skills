@@ -28,7 +28,7 @@ Follow this protocol exactly.
 
 ## Bundled CLI
 
-Use `scripts/multi_agent_locks.py`.
+Use `scripts/multi_agent_locks.ts`.
 
 Set the database path explicitly until product naming is finalized:
 
@@ -50,12 +50,12 @@ OWNER="codex:$$:${SESSION_ID}"
 DB_PATH="/absolute/path/to/locks.db"
 
 cleanup() {
-  python scripts/multi_agent_locks.py release --db "$DB_PATH" --owner "$OWNER" -- "${LOCKED_FILES[@]}"
+  bun scripts/multi_agent_locks.ts release --db "$DB_PATH" --owner "$OWNER" -- "${LOCKED_FILES[@]}"
 }
 trap cleanup EXIT INT TERM
 
 # Acquire, then continue only with returned acquired files.
-python scripts/multi_agent_locks.py acquire --db "$DB_PATH" --owner "$OWNER" --json -- path/a.ts path/b.ts
+bun scripts/multi_agent_locks.ts acquire --db "$DB_PATH" --owner "$OWNER" --json -- path/a.ts path/b.ts
 ```
 
 ## Behavioral requirements
