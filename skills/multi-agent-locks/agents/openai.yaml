@@ -1,0 +1,4 @@
+interface:
+  display_name: "Multi-Agent Locks"
+  short_description: "Coordinate hard locks for parallel coding agents"
+  default_prompt: "Use $multi-agent-locks to map files, acquire hard locks, skip conflicts, and release locks safely."
