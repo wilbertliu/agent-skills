@@ -1,6 +1,6 @@
 ---
 name: multi-agent-locks
-description: Mandatory skill for any agent that intends to make file changes in parallel contexts. Coordinate concurrent coding agents with hard file-level locks backed by centralized SQLite leases by mapping files first, locking before edits, skipping already-locked files, heartbeating during work, and releasing locks on exit.
+description: Mandatory skill for any agent that intends to make file changes. Coordinate concurrent coding agents with hard file-level locks backed by centralized SQLite leases by mapping files first, locking before edits, skipping already-locked files, heartbeating during work, and releasing locks on exit.
 ---
 
 # Multi Agent Locks
