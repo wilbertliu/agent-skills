@@ -1,11 +1,30 @@
 ---
 name: multi-agent-locks
-description: Mandatory skill for any agent that intends to make file changes. Coordinate concurrent coding agents with hard file-level locks backed by centralized SQLite leases by mapping files first, locking before edits, skipping already-locked files, heartbeating during work, and releasing locks on exit.
+description: Lock coordination skill for concurrent agents. Mandatory on primary `main` checkout; optional on worktrees/non-`main` branches unless stricter repo policy applies.
 ---
 
 # Multi Agent Locks
 
 Follow this protocol exactly.
+
+## Requirement policy
+
+Decide requirement status before first edit.
+
+| Condition | `multi-agent-locks` required |
+| --- | --- |
+| Branch is `main` and not a linked worktree | yes |
+| Branch is not `main` | optional |
+| Linked worktree (`/.git/worktrees/` path) | optional |
+| Detached HEAD (empty branch output) | optional |
+
+Detection commands:
+
+- Branch: `git -C <repo> branch --show-current`
+- Git dir: `git -C <repo> rev-parse --absolute-git-dir`
+- Linked worktree: git dir path contains `/.git/worktrees/`
+
+If repo policy is stricter than this table, follow repo policy.
 
 ## Required workflow
 
